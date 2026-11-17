@@ -1,37 +1,41 @@
+import { useState, useEffect } from 'react';
 import DaftarMateri from './components/DaftarMateri';
-
-const dataDummy = [
-  {
-    id: 1,
-    judul: 'Pengantar React',
-    mataKuliah: 'Pemrograman Web',
-    pertemuan: 1,
-    tautan: 'https://react.dev',
-    dibuat: '2026-11-01',
-  },
-  {
-    id: 2,
-    judul: 'Dasar SQL',
-    mataKuliah: 'Basis Data',
-    pertemuan: 2,
-    tautan: 'https://www.w3schools.com/sql/',
-    dibuat: '2026-11-02',
-  },
-  {
-    id: 3,
-    judul: 'Konsep REST API',
-    mataKuliah: 'Pemrograman Web',
-    pertemuan: 3,
-    tautan: null,
-    dibuat: '2026-11-03',
-  },
-];
+import { ambilMateri } from './api/materi';
 
 function App() {
+  const [materi, setMateri] = useState([]);
+  const [memuat, setMemuat] = useState(true);
+  const [galat, setGalat] = useState(null);
+
+  async function muat() {
+    setMemuat(true);
+    setGalat(null);
+    try {
+      const data = await ambilMateri();
+      setMateri(data);
+    } catch (err) {
+      setGalat(err.message);
+    } finally {
+      setMemuat(false);
+    }
+  }
+
+  useEffect(() => {
+    muat();
+  }, []);
+
   return (
     <div>
       <h1>ArsipMateri</h1>
-      <DaftarMateri materi={dataDummy} />
+      {memuat && <p>Memuat...</p>}
+      {galat && (
+        <div>
+          <p>{galat}</p>
+          <button onClick={muat}>Coba lagi</button>
+        </div>
+      )}
+      {!memuat && !galat && materi.length === 0 && <p>Belum ada materi</p>}
+      {!memuat && !galat && materi.length > 0 && <DaftarMateri materi={materi} />}
     </div>
   );
 }
